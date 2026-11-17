@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTasks } from '../context/TaskContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import TaskCard from '../components/TaskCard.jsx';
 import BottomSheet from '../components/BottomSheet.jsx';
 
@@ -28,6 +29,13 @@ export default function DashboardScreen() {
 
   // 라이트/다크 모드 (해/달 버튼에서 사용)
   const { theme, toggleTheme } = useTheme();
+
+  // 로그아웃 (프로필 TK 버튼에서 사용)
+  const { signOut } = useAuth();
+  async function handleLogout() {
+    await signOut();
+    navigate('/login', { replace: true });
+  }
 
   // 다크일 때는 해(라이트로 전환), 라이트일 때는 달(다크로 전환) 아이콘을 보여 준다
   let themeButtonLabel = '다크 모드로 전환';
@@ -111,11 +119,11 @@ export default function DashboardScreen() {
               {themeIcon}
             </svg>
           </button>
-          {/* 프로필 아바타: 클릭 시 로그아웃 / 로그인 화면 이동 가능 */}
+          {/* 프로필 아바타: 클릭 시 로그아웃하고 로그인 화면으로 이동 */}
           <button
             type="button"
-            onClick={() => navigate('/login')}
-            title="로그인 화면으로 이동"
+            onClick={handleLogout}
+            title="로그아웃"
             className="w-8 h-8 rounded-full bg-tasko-primary-light border border-tasko-primary/20 flex items-center justify-center text-xs font-bold text-tasko-primary hover:opacity-80 transition-opacity"
           >
             TK

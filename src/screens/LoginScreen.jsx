@@ -1,21 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * Tasko 모바일 로그인 화면
  * - 앱 첫 화면으로 사용됩니다.
- * - 버튼 클릭 시 대시보드(/dashboard)로 이동합니다.
+ * - Supabase 이메일·비밀번호 로그인에 성공하면 대시보드(/dashboard)로 이동합니다.
+ * - 실패하면 한국어 오류 문구를 화면에 보여 줍니다.
  */
 export default function LoginScreen() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('demo@tasko.app');
-  const [password, setPassword] = useState('••••••••');
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  // 로그인 버튼을 눌렀을 때: 로그인 요청 → 성공이면 대시보드, 실패면 오류 문구
+  async function handleSubmit(e) {
     e.preventDefault();
-    // 목업 로그인: 대시보드로 이동
-    navigate('/dashboard');
-  };
+    if (isSubmitting) {
+      return;
+    }
+    setErrorMessage('');
+    setIsSubmitting(true);
+    const result = await signIn(email.trim(), password);
+    setIsSubmitting(false);
+    if (result.ok) {
+      navigate('/dashboard');
+      return;
+    }
+    setErrorMessage(result.message);
+  }
+
+  // 요청 중에는 버튼 글자를 바꾼다
+  let buttonLabel = '로그인';
+  if (isSubmitting) {
+    buttonLabel = '로그인 중...';
+  }
 
   return (
     <div className="w-full h-full bg-tasko-bg flex flex-col justify-between select-none">
@@ -79,13 +101,21 @@ export default function LoginScreen() {
             />
           </div>
 
+          {/* 오류 문구 (실패했을 때만 보인다) */}
+          {errorMessage && (
+            <p role="alert" className="text-xs font-medium text-tasko-destructive">
+              {errorMessage}
+            </p>
+          )}
+
           {/* 로그인 버튼: 에메랄드 그린 풀사이즈 버튼 */}
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full h-12 bg-tasko-primary hover:bg-tasko-primary-hover active:scale-[0.98] text-white text-base font-semibold rounded-xl shadow-md shadow-tasko-primary/25 transition-all duration-150 flex items-center justify-center cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full h-12 bg-tasko-primary hover:bg-tasko-primary-hover active:scale-[0.98] text-white text-base font-semibold rounded-xl shadow-md shadow-tasko-primary/25 transition-all duration-150 flex items-center justify-center cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              로그인
+              {buttonLabel}
             </button>
           </div>
         </form>

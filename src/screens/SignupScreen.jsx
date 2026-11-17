@@ -1,21 +1,64 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /**
  * Tasko 모바일 회원가입 화면
- * - 버튼 클릭 시 대시보드(/dashboard)로 이동합니다.
+ * - 입력을 확인한 뒤 Supabase 이메일·비밀번호로 가입합니다.
+ * - 가입되어 로그인 상태가 되면 대시보드(/dashboard)로 이동합니다.
+ * - 실패하면 한국어 오류 문구를 화면에 보여 줍니다.
  */
 export default function SignupScreen() {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [noticeMessage, setNoticeMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  // 회원가입 버튼을 눌렀을 때: 입력 확인 → 가입 요청 → 성공이면 대시보드
+  async function handleSubmit(e) {
     e.preventDefault();
-    // 목업 회원가입 완료: 대시보드로 이동
+    if (isSubmitting) {
+      return;
+    }
+    setErrorMessage('');
+    setNoticeMessage('');
+
+    // 1) 입력 확인
+    if (password.length < 6) {
+      setErrorMessage('비밀번호는 6자 이상으로 입력해 주세요.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setErrorMessage('비밀번호와 비밀번호 확인이 서로 다릅니다.');
+      return;
+    }
+
+    // 2) 가입 요청
+    setIsSubmitting(true);
+    const result = await signUp(email.trim(), password);
+    setIsSubmitting(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.message);
+      return;
+    }
+    // 이메일 확인이 필요한 설정이면 안내만 보여 준다
+    if (result.needsConfirm) {
+      setNoticeMessage('확인 메일을 보냈습니다. 메일의 링크를 누른 뒤 로그인해 주세요.');
+      return;
+    }
     navigate('/dashboard');
-  };
+  }
+
+  // 요청 중에는 버튼 글자를 바꾼다
+  let buttonLabel = '회원가입';
+  if (isSubmitting) {
+    buttonLabel = '가입 중...';
+  }
 
   return (
     <div className="w-full h-full bg-tasko-bg flex flex-col justify-between select-none">
@@ -93,13 +136,26 @@ export default function SignupScreen() {
             />
           </div>
 
+          {/* 오류·안내 문구 (해당할 때만 보인다) */}
+          {errorMessage && (
+            <p role="alert" className="text-xs font-medium text-tasko-destructive">
+              {errorMessage}
+            </p>
+          )}
+          {noticeMessage && (
+            <p role="status" className="text-xs font-medium text-tasko-primary">
+              {noticeMessage}
+            </p>
+          )}
+
           {/* 회원가입 버튼 */}
           <div className="pt-2">
             <button
-              className="w-full h-[50px] bg-tasko-primary hover:bg-tasko-primary-hover active:scale-[0.99] text-white font-medium text-[15px] rounded-xl shadow-[0_4px_14px_rgba(30,166,92,0.25)] transition-all flex items-center justify-center cursor-pointer"
+              className="w-full h-[50px] bg-tasko-primary hover:bg-tasko-primary-hover active:scale-[0.99] text-white font-medium text-[15px] rounded-xl shadow-[0_4px_14px_rgba(30,166,92,0.25)] transition-all flex items-center justify-center cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               type="submit"
+              disabled={isSubmitting}
             >
-              회원가입
+              {buttonLabel}
             </button>
           </div>
         </form>
