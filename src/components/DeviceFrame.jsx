@@ -8,7 +8,7 @@ export default function DeviceFrame({ children, hideStatusBar = false }) {
   return (
     <div className="min-h-screen bg-[#1A1E29] flex items-center justify-center p-0 md:p-6 select-none font-sans">
       <div
-        className="w-full max-w-[393px] h-[852px] min-h-[852px] bg-[#F8F9FA] rounded-none md:rounded-[48px] relative overflow-hidden flex flex-col shadow-2xl md:border-[8px] border-[#2C3240]"
+        className="w-full max-w-[393px] h-[852px] min-h-[852px] bg-tasko-bg rounded-none md:rounded-[48px] relative overflow-hidden flex flex-col shadow-2xl md:border-[8px] border-[#2C3240]"
         data-purpose="iphone-16-mockup"
       >
         {/* iOS 상단 상태 표시줄 및 다이내믹 아일랜드 */}

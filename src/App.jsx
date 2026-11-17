@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { TaskProvider } from './context/TaskContext.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import DeviceFrame from './components/DeviceFrame.jsx';
 import LoginScreen from './screens/LoginScreen.jsx';
 import SignupScreen from './screens/SignupScreen.jsx';
@@ -21,6 +22,7 @@ import TaskDetailScreen from './screens/TaskDetailScreen.jsx';
  */
 export default function App() {
   return (
+    <ThemeProvider>
     <TaskProvider>
       <BrowserRouter>
         <DeviceFrame>
@@ -38,5 +40,6 @@ export default function App() {
         </DeviceFrame>
       </BrowserRouter>
     </TaskProvider>
+    </ThemeProvider>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTasks } from '../context/TaskContext.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
 import TaskCard from '../components/TaskCard.jsx';
 import BottomSheet from '../components/BottomSheet.jsx';
 
@@ -24,6 +25,29 @@ export default function DashboardScreen() {
     percentage,
     categoryStats,
   } = useTasks();
+
+  // 라이트/다크 모드 (해/달 버튼에서 사용)
+  const { theme, toggleTheme } = useTheme();
+
+  // 다크일 때는 해(라이트로 전환), 라이트일 때는 달(다크로 전환) 아이콘을 보여 준다
+  let themeButtonLabel = '다크 모드로 전환';
+  let themeIcon = <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>;
+  if (theme === 'dark') {
+    themeButtonLabel = '라이트 모드로 전환';
+    themeIcon = (
+      <>
+        <circle cx="12" cy="12" r="4"></circle>
+        <line x1="12" y1="2" x2="12" y2="4"></line>
+        <line x1="12" y1="20" x2="12" y2="22"></line>
+        <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+        <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+        <line x1="2" y1="12" x2="4" y2="12"></line>
+        <line x1="20" y1="12" x2="22" y2="12"></line>
+        <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
+        <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
+      </>
+    );
+  }
 
   const [currentFilter, setCurrentFilter] = useState('ALL'); // 'ALL' | 'IN_PROGRESS' | 'COMPLETED' | 'STARRED'
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -50,16 +74,16 @@ export default function DashboardScreen() {
   });
 
   return (
-    <div className="relative w-full h-full bg-[#F8F9FA] flex flex-col overflow-hidden select-none">
+    <div className="relative w-full h-full bg-tasko-bg flex flex-col overflow-hidden select-none">
       {/* 1. 상단 Safe Area & 헤더 섹션 */}
-      <header className="pt-2 px-5 pb-3 bg-white border-b border-[#E9ECEF] flex items-center justify-between shrink-0 z-10">
+      <header className="pt-2 px-5 pb-3 bg-tasko-surface border-b border-tasko-border flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#1EA65C] flex items-center justify-center text-white shadow-sm">
+          <div className="w-7 h-7 rounded-lg bg-tasko-primary flex items-center justify-center text-white shadow-sm">
             <svg className="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-[#212529] tracking-tight">오늘의 할 일</h1>
+          <h1 className="text-xl font-bold text-tasko-text tracking-tight">오늘의 할 일</h1>
         </div>
 
         {/* 우측 액션: 검색 아이콘 및 프로필 아바타 */}
@@ -69,11 +93,22 @@ export default function DashboardScreen() {
             type="button"
             onClick={() => setIsSearchActive(!isSearchActive)}
             aria-label="할 일 검색"
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#F8F9FA] text-[#495057] active:scale-95 transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-tasko-bg text-tasko-secondary active:scale-95 transition-all"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+          {/* 라이트/다크 모드 전환 버튼: 다크일 때는 해, 라이트일 때는 달 아이콘 */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={themeButtonLabel}
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-tasko-bg text-tasko-secondary active:scale-95 transition-all"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {themeIcon}
             </svg>
           </button>
           {/* 프로필 아바타: 클릭 시 로그아웃 / 로그인 화면 이동 가능 */}
@@ -81,7 +116,7 @@ export default function DashboardScreen() {
             type="button"
             onClick={() => navigate('/login')}
             title="로그인 화면으로 이동"
-            className="w-8 h-8 rounded-full bg-[#E8F7EE] border border-[#1EA65C]/20 flex items-center justify-center text-xs font-bold text-[#1EA65C] hover:opacity-80 transition-opacity"
+            className="w-8 h-8 rounded-full bg-tasko-primary-light border border-tasko-primary/20 flex items-center justify-center text-xs font-bold text-tasko-primary hover:opacity-80 transition-opacity"
           >
             TK
           </button>
@@ -90,20 +125,20 @@ export default function DashboardScreen() {
 
       {/* 인라인 검색 바 (검색 토글 시 노출) */}
       {isSearchActive && (
-        <div className="bg-white px-5 py-2.5 border-b border-[#E9ECEF] flex items-center gap-2">
+        <div className="bg-tasko-surface px-5 py-2.5 border-b border-tasko-border flex items-center gap-2">
           <input
             type="text"
             placeholder="할 일 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
-            className="flex-1 h-9 px-3 rounded-lg bg-[#F8F9FA] border border-[#E9ECEF] text-xs text-[#212529] focus:outline-none focus:border-[#1EA65C]"
+            className="flex-1 h-9 px-3 rounded-lg bg-tasko-bg border border-tasko-border text-xs text-tasko-text focus:outline-none focus:border-tasko-primary"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="text-xs text-[#868E96] hover:text-[#212529] px-1"
+              className="text-xs text-tasko-muted hover:text-tasko-text px-1"
             >
               지우기
             </button>
@@ -112,52 +147,52 @@ export default function DashboardScreen() {
       )}
 
       {/* 2. 상단 요약 & 필터 섹션 */}
-      <div className="shrink-0 bg-white px-5 pt-3 pb-3 border-b border-[#E9ECEF] shadow-xs">
+      <div className="shrink-0 bg-tasko-surface px-5 pt-3 pb-3 border-b border-tasko-border shadow-xs">
         {/* 2-1. 완료율 달성 프로그레스 카드 */}
-        <div className="bg-[#E8F7EE] rounded-2xl p-4 border border-[#1EA65C]/20 mb-3">
+        <div className="bg-tasko-primary-light rounded-2xl p-4 border border-tasko-primary/20 mb-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#1EA65C] px-2 py-0.5 bg-white rounded-full shadow-xs">
+              <span className="text-xs font-semibold text-tasko-primary px-2 py-0.5 bg-tasko-surface rounded-full shadow-xs">
                 목표 달성률
               </span>
-              <span className="text-xs text-[#495057]">
+              <span className="text-xs text-tasko-secondary">
                 {totalCount}개 중 {completedCount}개 완료
               </span>
             </div>
-            <span className="text-sm font-bold text-[#1EA65C]">{percentage}%</span>
+            <span className="text-sm font-bold text-tasko-primary">{percentage}%</span>
           </div>
           {/* 게이지 바 */}
-          <div className="w-full h-2.5 bg-white/80 rounded-full overflow-hidden p-0.5">
+          <div className="w-full h-2.5 bg-tasko-surface/80 rounded-full overflow-hidden p-0.5">
             <div
-              className="h-full bg-[#1EA65C] rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-tasko-primary rounded-full transition-all duration-300 ease-out"
               style={{ width: `${percentage}%` }}
             ></div>
           </div>
         </div>
 
         {/* 2-2. 카테고리별 진행도 카드 (8개 샘플 데이터 기반 자동 계산) */}
-        <div className="bg-white rounded-xl p-3.5 border border-[#E9ECEF] shadow-xs mb-3">
+        <div className="bg-tasko-surface rounded-xl p-3.5 border border-tasko-border shadow-xs mb-3">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-xs font-semibold text-[#495057]">카테고리별 진행도</span>
-            <span className="text-[11px] text-[#868E96]">총 {categoryStats.length}개 분야</span>
+            <span className="text-xs font-semibold text-tasko-secondary">카테고리별 진행도</span>
+            <span className="text-[11px] text-tasko-muted">총 {categoryStats.length}개 분야</span>
           </div>
           <div className="space-y-2.5">
             {categoryStats.map((cat) => (
               <div key={cat.name}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#F8F9FA] text-[#495057] border border-[#E9ECEF]">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-tasko-bg text-tasko-secondary border border-tasko-border">
                     {cat.name}
                   </span>
-                  <span className="text-xs font-semibold text-[#212529]">
+                  <span className="text-xs font-semibold text-tasko-text">
                     {cat.completed}/{cat.total}{' '}
-                    <span className={`text-[11px] font-medium ${cat.percentage > 0 ? 'text-[#1EA65C]' : 'text-[#868E96]'}`}>
+                    <span className={`text-[11px] font-medium ${cat.percentage > 0 ? 'text-tasko-primary' : 'text-tasko-muted'}`}>
                       ({cat.percentage}%)
                     </span>
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-[#E9ECEF] rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-tasko-border rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#1EA65C] rounded-full transition-all duration-300"
+                    className="h-full bg-tasko-primary rounded-full transition-all duration-300"
                     style={{ width: `${cat.percentage}%` }}
                   ></div>
                 </div>
@@ -174,14 +209,14 @@ export default function DashboardScreen() {
             onClick={() => setCurrentFilter('ALL')}
             className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all active:scale-95 cursor-pointer ${
               currentFilter === 'ALL'
-                ? 'font-semibold bg-[#1EA65C] text-white shadow-xs'
-                : 'font-medium bg-white border border-[#E9ECEF] text-[#212529] hover:bg-[#F8F9FA]'
+                ? 'font-semibold bg-tasko-primary text-white shadow-xs'
+                : 'font-medium bg-tasko-surface border border-tasko-border text-tasko-text hover:bg-tasko-bg'
             }`}
           >
             <span>전체</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[11px] ${
-                currentFilter === 'ALL' ? 'font-bold bg-white/20 text-white' : 'font-medium bg-[#F8F9FA] text-[#495057]'
+                currentFilter === 'ALL' ? 'font-bold bg-white/20 text-white' : 'font-medium bg-tasko-bg text-tasko-secondary'
               }`}
             >
               {totalCount}
@@ -194,8 +229,8 @@ export default function DashboardScreen() {
             onClick={() => setCurrentFilter('IN_PROGRESS')}
             className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all active:scale-95 cursor-pointer ${
               currentFilter === 'IN_PROGRESS'
-                ? 'font-semibold bg-[#1EA65C] text-white shadow-xs'
-                : 'font-medium bg-white border border-[#E9ECEF] text-[#212529] hover:bg-[#F8F9FA]'
+                ? 'font-semibold bg-tasko-primary text-white shadow-xs'
+                : 'font-medium bg-tasko-surface border border-tasko-border text-tasko-text hover:bg-tasko-bg'
             }`}
           >
             <span>진행 중</span>
@@ -203,7 +238,7 @@ export default function DashboardScreen() {
               className={`px-1.5 py-0.2 rounded-full text-[11px] ${
                 currentFilter === 'IN_PROGRESS'
                   ? 'font-bold bg-white/20 text-white'
-                  : 'font-medium bg-[#F8F9FA] text-[#495057]'
+                  : 'font-medium bg-tasko-bg text-tasko-secondary'
               }`}
             >
               {inProgressCount}
@@ -216,8 +251,8 @@ export default function DashboardScreen() {
             onClick={() => setCurrentFilter('COMPLETED')}
             className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all active:scale-95 cursor-pointer ${
               currentFilter === 'COMPLETED'
-                ? 'font-semibold bg-[#1EA65C] text-white shadow-xs'
-                : 'font-medium bg-white border border-[#E9ECEF] text-[#212529] hover:bg-[#F8F9FA]'
+                ? 'font-semibold bg-tasko-primary text-white shadow-xs'
+                : 'font-medium bg-tasko-surface border border-tasko-border text-tasko-text hover:bg-tasko-bg'
             }`}
           >
             <span>완료</span>
@@ -225,7 +260,7 @@ export default function DashboardScreen() {
               className={`px-1.5 py-0.2 rounded-full text-[11px] ${
                 currentFilter === 'COMPLETED'
                   ? 'font-bold bg-white/20 text-white'
-                  : 'font-medium bg-[#F8F9FA] text-[#495057]'
+                  : 'font-medium bg-tasko-bg text-tasko-secondary'
               }`}
             >
               {completedCount}
@@ -238,13 +273,13 @@ export default function DashboardScreen() {
             onClick={() => setCurrentFilter('STARRED')}
             className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-all active:scale-95 cursor-pointer ${
               currentFilter === 'STARRED'
-                ? 'font-semibold bg-[#1EA65C] text-white shadow-xs'
-                : 'font-medium bg-white border border-[#E9ECEF] text-[#212529] hover:bg-[#F8F9FA]'
+                ? 'font-semibold bg-tasko-primary text-white shadow-xs'
+                : 'font-medium bg-tasko-surface border border-tasko-border text-tasko-text hover:bg-tasko-bg'
             }`}
           >
             <svg
               className={`w-3.5 h-3.5 ${
-                currentFilter === 'STARRED' ? 'fill-white text-white' : 'fill-[#FAB005] text-[#FAB005]'
+                currentFilter === 'STARRED' ? 'fill-white text-white' : 'fill-tasko-yellow text-tasko-yellow'
               }`}
               viewBox="0 0 24 24"
             >
@@ -255,7 +290,7 @@ export default function DashboardScreen() {
               className={`px-1.5 py-0.2 rounded-full text-[11px] ${
                 currentFilter === 'STARRED'
                   ? 'font-bold bg-white/20 text-white'
-                  : 'font-medium bg-[#F8F9FA] text-[#495057]'
+                  : 'font-medium bg-tasko-bg text-tasko-secondary'
               }`}
             >
               {starredCount}
@@ -270,7 +305,7 @@ export default function DashboardScreen() {
         <div className="flex items-center justify-between px-1 pt-1 pb-1">
           <Link
             to="/tasks"
-            className="group inline-flex items-center gap-1 text-[13px] font-bold text-[#1EA65C] hover:text-[#178449] transition-colors"
+            className="group inline-flex items-center gap-1 text-[13px] font-bold text-tasko-primary hover:text-tasko-primary-hover transition-colors"
           >
             <span>오늘 할 일 · 전체 보기</span>
             <svg
@@ -282,23 +317,23 @@ export default function DashboardScreen() {
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
           </Link>
-          <span className="text-[11px] font-medium text-[#868E96]">
+          <span className="text-[11px] font-medium text-tasko-muted">
             {filteredTasks.length}개 표시 중
           </span>
         </div>
 
         {/* 할 일 카드 리스트 */}
         {filteredTasks.length === 0 ? (
-          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-white rounded-2xl border border-dashed border-[#E9ECEF]">
-            <div className="w-10 h-10 rounded-full bg-[#F8F9FA] flex items-center justify-center text-[#868E96] mb-2">
+          <div className="h-44 flex flex-col items-center justify-center text-center p-6 bg-tasko-surface rounded-2xl border border-dashed border-tasko-border">
+            <div className="w-10 h-10 rounded-full bg-tasko-bg flex items-center justify-center text-tasko-muted mb-2">
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             </div>
-            <p className="text-sm font-medium text-[#495057]">해당하는 할 일이 없습니다</p>
-            <p className="text-xs text-[#868E96] mt-0.5">우측 하단 (+) 버튼을 눌러 새 할 일을 등록해보세요</p>
+            <p className="text-sm font-medium text-tasko-secondary">해당하는 할 일이 없습니다</p>
+            <p className="text-xs text-tasko-muted mt-0.5">우측 하단 (+) 버튼을 눌러 새 할 일을 등록해보세요</p>
           </div>
         ) : (
           filteredTasks.map((task) => (
@@ -313,7 +348,7 @@ export default function DashboardScreen() {
           type="button"
           onClick={() => setIsBottomSheetOpen(true)}
           aria-label="새로운 태스크 추가"
-          className="w-14 h-14 rounded-full bg-[#1EA65C] hover:bg-[#178449] active:scale-95 text-white flex items-center justify-center shadow-[0_4px_14px_rgba(30,166,92,0.4)] transition-all cursor-pointer"
+          className="w-14 h-14 rounded-full bg-tasko-primary hover:bg-tasko-primary-hover active:scale-95 text-white flex items-center justify-center shadow-[0_4px_14px_rgba(30,166,92,0.4)] transition-all cursor-pointer"
         >
           <svg className="w-6 h-6 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
